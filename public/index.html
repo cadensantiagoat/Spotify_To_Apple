@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify to Apple Music Transfer</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://js-cdn.music.apple.com/musickit/v1/musickit.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Spotify to Apple Music</h1>
+            <p class="subtitle">Transfer your playlists seamlessly</p>
+        </header>
+
+        <main>
+            <!-- Authentication Section -->
+            <section class="auth-section">
+                <div class="auth-card">
+                    <h2>Connect Your Accounts</h2>
+                    <div class="auth-buttons">
+                        <button id="spotifyLogin" class="btn btn-spotify">
+                            <span class="icon">🎧</span>
+                            Connect Spotify
+                        </button>
+                        <button id="appleMusicLogin" class="btn btn-apple" disabled>
+                            <span class="icon">🍎</span>
+                            Connect Apple Music
+                        </button>
+                    </div>
+                    <div id="authStatus" class="status"></div>
+                </div>
+            </section>
+
+            <!-- Playlists Section -->
+            <section class="playlists-section" id="playlistsSection" style="display: none;">
+                <h2>Your Spotify Playlists</h2>
+                <div id="playlistsList" class="playlists-grid"></div>
+            </section>
+
+            <!-- Transfer Section -->
+            <section class="transfer-section" id="transferSection" style="display: none;">
+                <h2>Transfer Playlist</h2>
+                <div id="transferStatus" class="status"></div>
+                <div id="transferProgress" class="progress-bar" style="display: none;">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
