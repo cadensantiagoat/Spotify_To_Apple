@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spotify to Apple Music Transfer</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://js-cdn.music.apple.com/musickit/v1/musickit.js"></script>
 </head>
 <body>
     <div class="container">
@@ -18,15 +17,12 @@
             <!-- Authentication Section -->
             <section class="auth-section">
                 <div class="auth-card">
-                    <h2>Connect Your Accounts</h2>
+                    <h2>Connect Your Spotify Account</h2>
+                    <p class="info-text">Connect Spotify to export your playlists. You can then manually import them to Apple Music.</p>
                     <div class="auth-buttons">
                         <button id="spotifyLogin" class="btn btn-spotify">
                             <span class="icon">🎧</span>
                             Connect Spotify
-                        </button>
-                        <button id="appleMusicLogin" class="btn btn-apple" disabled>
-                            <span class="icon">🍎</span>
-                            Connect Apple Music
                         </button>
                     </div>
                     <div id="authStatus" class="status"></div>
@@ -39,12 +35,19 @@
                 <div id="playlistsList" class="playlists-grid"></div>
             </section>
 
-            <!-- Transfer Section -->
-            <section class="transfer-section" id="transferSection" style="display: none;">
-                <h2>Transfer Playlist</h2>
-                <div id="transferStatus" class="status"></div>
-                <div id="transferProgress" class="progress-bar" style="display: none;">
-                    <div id="progressFill" class="progress-fill"></div>
+            <!-- Export Section -->
+            <section class="transfer-section" id="exportSection" style="display: none;">
+                <h2>Export Playlist</h2>
+                <div id="exportStatus" class="status"></div>
+                <div id="exportOptions" style="display: none; margin-top: 20px;">
+                    <h3>Export Format</h3>
+                    <div class="export-buttons">
+                        <button id="exportCSV" class="btn btn-export">📄 Export as CSV</button>
+                        <button id="exportJSON" class="btn btn-export">📋 Export as JSON</button>
+                        <button id="exportText" class="btn btn-export">📝 Export as Text</button>
+                        <button id="copyTracks" class="btn btn-export">📋 Copy Track List</button>
+                    </div>
+                    <div id="exportedTracks" style="margin-top: 20px;"></div>
                 </div>
             </section>
         </main>

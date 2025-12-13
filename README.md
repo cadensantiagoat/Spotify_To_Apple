@@ -1,20 +1,21 @@
 # Spotify to Apple Music Transfer
 
-A web application that allows you to transfer your Spotify playlists to Apple Music seamlessly.
+A **100% FREE** web application that exports your Spotify playlists for manual import into Apple Music. No Apple Developer account required!
 
 ## Features
 
-- 🔐 Secure OAuth authentication for both Spotify and Apple Music
+- 🔐 Secure OAuth authentication for Spotify
 - 📋 View all your Spotify playlists
-- 🎵 Transfer playlists with automatic track matching
-- 📊 Progress tracking during transfer
+- 📄 Export playlists in multiple formats (CSV, JSON, Text)
+- 📋 Copy track lists to clipboard
 - 🎨 Modern, responsive UI
+- 💰 **Completely Free** - No paid subscriptions needed
 
 ## Prerequisites
 
 - Node.js (v14 or higher)
-- Spotify Developer Account
-- Apple Developer Account (for Apple Music API access)
+- Spotify Developer Account (free)
+- **No Apple Developer Account needed!**
 
 ## Setup Instructions
 
@@ -25,15 +26,7 @@ A web application that allows you to transfer your Spotify playlists to Apple Mu
 3. Note your `Client ID` and `Client Secret`
 4. Add `http://localhost:3000/api/spotify/callback` to your app's redirect URIs
 
-### 2. Apple Music API Setup
-
-1. Go to [Apple Developer Portal](https://developer.apple.com/account/resources/identifiers/list)
-2. Create a MusicKit identifier
-3. Generate a private key for MusicKit
-4. Note your `Team ID`, `Key ID`, and download the private key file
-5. You'll need to generate a developer token (JWT) for authentication
-
-### 3. Installation
+### 2. Installation
 
 1. Clone or download this repository
 2. Install dependencies:
@@ -46,30 +39,16 @@ A web application that allows you to transfer your Spotify playlists to Apple Mu
    cp .env.example .env
    ```
 
-4. Fill in your credentials in the `.env` file:
+4. Fill in your Spotify credentials in the `.env` file:
    ```
    SPOTIFY_CLIENT_ID=your_spotify_client_id
    SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-   SPOTIFY_REDIRECT_URI=http://localhost:3000/api/spotify/callback
-   
-   APPLE_MUSIC_TEAM_ID=your_apple_team_id
-   APPLE_MUSIC_KEY_ID=your_apple_key_id
-   APPLE_MUSIC_PRIVATE_KEY=your_apple_private_key
+   SPOTIFY_REDIRECT_URI=http://127.0.0.1:3000/api/spotify/callback
    ```
 
-### 4. Apple Music Developer Token
+   **Note**: You don't need Apple Music credentials! This app exports playlists for manual import.
 
-The Apple Music integration requires a developer token (JWT). You have two options:
-
-**Option A: Generate on the server (Recommended)**
-- Implement JWT generation in `server/routes/appleMusic.js` using the `jsonwebtoken` package
-- Use your Team ID, Key ID, and private key to generate tokens
-
-**Option B: Use MusicKit JS (Current Implementation)**
-- The frontend uses MusicKit JS which handles authentication client-side
-- You'll need to configure MusicKit with your developer token in `public/app.js`
-
-### 5. Run the Application
+### 3. Run the Application
 
 ```bash
 npm start
@@ -85,38 +64,49 @@ The application will be available at `http://localhost:3000`
 ## Usage
 
 1. **Connect Spotify**: Click "Connect Spotify" and authorize the application
-2. **Connect Apple Music**: Click "Connect Apple Music" and sign in
-3. **Select Playlist**: Click on any playlist from your Spotify account
-4. **Transfer**: The app will automatically match tracks and create the playlist in Apple Music
+2. **Select Playlist**: Click on any playlist from your Spotify account
+3. **Export**: Choose your preferred export format:
+   - **CSV**: Download as spreadsheet
+   - **JSON**: Download as structured data
+   - **Text**: Download as plain text list
+   - **Copy**: Copy track list to clipboard
+4. **Import to Apple Music**: Manually create the playlist in Apple Music using the exported track list
+
+See [MANUAL_IMPORT_GUIDE.md](MANUAL_IMPORT_GUIDE.md) for detailed instructions on importing to Apple Music.
 
 ## How It Works
 
 1. **Spotify Authentication**: Uses OAuth 2.0 to authenticate and get access to your playlists
 2. **Playlist Fetching**: Retrieves all tracks from the selected Spotify playlist
-3. **Track Matching**: Searches Apple Music for each track using song name and artist
-4. **Playlist Creation**: Creates a new playlist in Apple Music with all matched tracks
+3. **Export**: Exports tracks in your chosen format (CSV, JSON, or Text)
+4. **Manual Import**: You manually create the playlist in Apple Music using the exported data
+
+## Why This Approach?
+
+- ✅ **100% Free** - No Apple Developer account ($99/year) needed
+- ✅ **No API Limits** - No rate limiting or quota restrictions
+- ✅ **Full Control** - You decide which tracks to add
+- ✅ **Works Everywhere** - Use any Apple Music client (Mac, iPhone, iPad, Web)
+
+The trade-off is manual import, but it's completely free and gives you full control!
 
 ## Limitations
 
-- Not all tracks may be available in Apple Music
-- Track matching relies on search accuracy
-- Apple Music API requires an active Apple Developer account
-- Some playlists may have rate limiting restrictions
+- Manual import required (takes a bit more time)
+- Not all Spotify tracks may be available in Apple Music
+- You'll need to search for each track in Apple Music
 
 ## Troubleshooting
 
 ### Spotify Authentication Issues
-- Verify your redirect URI matches exactly in Spotify dashboard
-- Check that your Client ID and Secret are correct
+- Verify your redirect URI matches exactly in Spotify dashboard (`http://127.0.0.1:3000/api/spotify/callback`)
+- Check that your Client ID and Secret are correct in `.env` file
+- Make sure you've added the redirect URI in Spotify Developer Dashboard
 
-### Apple Music Issues
-- Ensure you have an active Apple Developer account
-- Verify your developer token is valid and not expired
-- Check that MusicKit is properly configured
-
-### Track Matching Issues
-- Some tracks may not be found if they have different names or aren't available in Apple Music
-- The app will transfer as many tracks as possible
+### Export Issues
+- Make sure you've selected a playlist first
+- Check browser console for any errors
+- Try a different export format if one doesn't work
 
 ## License
 
