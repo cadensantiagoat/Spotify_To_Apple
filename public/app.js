@@ -2,7 +2,19 @@
 let spotifyToken = null;
 let currentPlaylistTracks = null;
 let currentPlaylistName = null;
-let forceReauth = false; // Flag to force re-authentication after logout
+
+// Check if force re-auth is needed (persisted in sessionStorage)
+function getForceReauth() {
+    return sessionStorage.getItem('forceReauth') === 'true';
+}
+
+function setForceReauth(value) {
+    if (value) {
+        sessionStorage.setItem('forceReauth', 'true');
+    } else {
+        sessionStorage.removeItem('forceReauth');
+    }
+}
 
 // Check for tokens in URL hash
 window.addEventListener('DOMContentLoaded', () => {
@@ -11,7 +23,7 @@ window.addEventListener('DOMContentLoaded', () => {
     
     if (params.get('spotify_token')) {
         spotifyToken = params.get('spotify_token');
-        forceReauth = false; // Reset flag after successful login
+        setForceReauth(false); // Reset flag after successful login
         updateAuthStatus('Spotify connected!', 'success');
         showLogoutButton();
         loadSpotifyPlaylists();
@@ -19,10 +31,7 @@ window.addEventListener('DOMContentLoaded', () => {
     
     // If there's an error, reset forceReauth flag
     if (params.get('error')) {
-        forceReauth = false;
-    }
-    
-    if (params.get('error')) {
+        setForceReauth(false);
         updateAuthStatus('Authentication failed. Please try again.', 'error');
     }
     
@@ -46,7 +55,7 @@ const spotifyLoginBtn = document.getElementById('spotifyLogin');
 if (spotifyLoginBtn) {
     spotifyLoginBtn.addEventListener('click', () => {
         // If forceReauth flag is set (after logout), force re-authentication
-        if (forceReauth) {
+        if (getForceReauth()) {
             console.log('Force re-authentication: redirecting with force_login=true');
             window.location.href = '/api/spotify/login?force_login=true';
         } else {
@@ -71,7 +80,7 @@ function logoutSpotify() {
     currentPlaylistName = null;
     
     // Set flag to force re-authentication on next login
-    forceReauth = true;
+    setForceReauth(true);
     
     // Clear any stored data
     localStorage.removeItem('spotify_token');

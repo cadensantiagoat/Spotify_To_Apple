@@ -50,9 +50,9 @@ router.get('/login', (req, res) => {
   
   // If force_login is true, add prompt to force fresh login
   if (forceLogin) {
-    // Use 'login' to force re-authentication, or 'login select_account' to show account picker and force login
-    authParams.prompt = 'login select_account'; // Forces fresh login and shows account selection
-    console.log('Added prompt=login select_account to force re-authentication');
+    // Use 'login' to force re-authentication - requires user to enter credentials again
+    authParams.prompt = 'login'; // Forces fresh login and credential entry
+    console.log('Added prompt=login to force re-authentication');
   }
   
   const queryParams = querystring.stringify(authParams);
