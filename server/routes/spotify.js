@@ -35,13 +35,28 @@ router.get('/login', (req, res) => {
   console.log('Using redirect URI:', REDIRECT_URI);
   console.log('Make sure this EXACT URI is in your Spotify app settings!');
 
-  const queryParams = querystring.stringify({
+  // Check if we should force re-authentication (from query param)
+  const forceLogin = req.query.force_login === 'true';
+  
+  console.log('Force login requested:', forceLogin);
+  
+  const authParams = {
     response_type: 'code',
     client_id: SPOTIFY_CLIENT_ID,
     scope: scope,
     redirect_uri: REDIRECT_URI,
     state: state
-  });
+  };
+  
+  // If force_login is true, add prompt to force fresh login
+  if (forceLogin) {
+    // Use 'login' to force re-authentication, or 'login select_account' to show account picker and force login
+    authParams.prompt = 'login select_account'; // Forces fresh login and shows account selection
+    console.log('Added prompt=login select_account to force re-authentication');
+  }
+  
+  const queryParams = querystring.stringify(authParams);
+  console.log('Spotify auth URL params:', queryParams);
 
   res.redirect(`https://accounts.spotify.com/authorize?${queryParams}`);
 });

@@ -71,8 +71,22 @@ The application will be available at `http://localhost:3000`
    - **Text**: Download as plain text list
    - **Copy**: Copy track list to clipboard
 4. **Import to Apple Music**: Manually create the playlist in Apple Music using the exported track list
+5. **Logout**: Click "Logout" to disconnect your Spotify account and log in with a different account
 
 See [MANUAL_IMPORT_GUIDE.md](MANUAL_IMPORT_GUIDE.md) for detailed instructions on importing to Apple Music.
+
+### Logout Feature
+
+To use the logout feature to switch Spotify accounts:
+
+**Important**: You may need to disable third-party cookies in your browser settings for the logout feature to work properly. This allows Spotify to show the login screen when switching accounts.
+
+**How to disable third-party cookies:**
+- **Chrome/Edge**: Settings → Privacy and security → Cookies and other site data → Turn off "Allow third-party cookies"
+- **Firefox**: Settings → Privacy & Security → Under "Cookies and Site Data", select "Block all third-party cookies"
+- **Safari**: Preferences → Privacy → Uncheck "Prevent cross-site tracking"
+
+Alternatively, you can use an incognito/private window to test account switching without changing cookie settings.
 
 ## How It Works
 
@@ -107,6 +121,11 @@ The trade-off is manual import, but it's completely free and gives you full cont
 - Make sure you've selected a playlist first
 - Check browser console for any errors
 - Try a different export format if one doesn't work
+
+### Logout/Account Switching Issues
+- If logout doesn't allow you to switch accounts, disable third-party cookies in your browser settings (see Usage section above)
+- Alternatively, use an incognito/private window for account switching
+- Clear cookies for `accounts.spotify.com` if the login screen doesn't appear
 
 ## License
 

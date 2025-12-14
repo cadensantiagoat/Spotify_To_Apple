@@ -102,6 +102,11 @@ section h2 {
     color: white;
 }
 
+.btn-logout {
+    background: #6c757d;
+    color: white;
+}
+
 .btn-export {
     background: #667eea;
     color: white;
