@@ -1,7 +1,7 @@
 // Global state
 let spotifyToken = null;
-let currentPlaylistTracks = null;
-let currentPlaylistName = null;
+let appleMusicToken = null;
+let musicKit = null;
 
 // Check for tokens in URL hash
 window.addEventListener('DOMContentLoaded', () => {
@@ -11,6 +11,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (params.get('spotify_token')) {
         spotifyToken = params.get('spotify_token');
         updateAuthStatus('Spotify connected!', 'success');
+        document.getElementById('appleMusicLogin').disabled = false;
         loadSpotifyPlaylists();
     }
     
@@ -27,11 +28,44 @@ document.getElementById('spotifyLogin').addEventListener('click', () => {
     window.location.href = '/api/spotify/login';
 });
 
-// Export button handlers
-document.getElementById('exportCSV').addEventListener('click', () => exportPlaylist('csv'));
-document.getElementById('exportJSON').addEventListener('click', () => exportPlaylist('json'));
-document.getElementById('exportText').addEventListener('click', () => exportPlaylist('text'));
-document.getElementById('copyTracks').addEventListener('click', () => copyTrackList());
+// Apple Music Login
+document.getElementById('appleMusicLogin').addEventListener('click', async () => {
+    try {
+        // Fetch developer token from server
+        const tokenResponse = await fetch('/api/apple-music/developer-token');
+        if (!tokenResponse.ok) {
+            throw new Error('Failed to get developer token');
+        }
+        
+        const { developerToken } = await tokenResponse.json();
+        
+        if (!developerToken) {
+            throw new Error('Developer token not available. Please configure Apple Music credentials.');
+        }
+        
+        // Initialize MusicKit
+        musicKit = await window.MusicKit.configure({
+            developerToken: developerToken,
+            app: {
+                name: 'Spotify to Apple Music',
+                build: '1.0.0'
+            }
+        });
+        
+        // Request authorization
+        const userToken = await musicKit.authorize();
+        appleMusicToken = userToken;
+        
+        updateAuthStatus('Apple Music connected!', 'success');
+        document.getElementById('appleMusicLogin').disabled = true;
+    } catch (error) {
+        console.error('Apple Music auth error:', error);
+        updateAuthStatus(
+            'Apple Music authentication failed. Please check your Apple Music credentials in the .env file.', 
+            'error'
+        );
+    }
+});
 
 // Load Spotify Playlists
 async function loadSpotifyPlaylists() {
@@ -74,20 +108,25 @@ function displayPlaylists(playlists) {
             <h3>${escapeHtml(playlist.name)}</h3>
             <p>${playlist.tracks.total} tracks</p>
         `;
-        card.addEventListener('click', () => exportPlaylistData(playlist));
+        card.addEventListener('click', () => transferPlaylist(playlist));
         container.appendChild(card);
     });
 }
 
-// Export Playlist Data
-async function exportPlaylistData(playlist) {
+// Transfer Playlist
+async function transferPlaylist(playlist) {
     if (!spotifyToken) {
         updateAuthStatus('Please connect Spotify first.', 'error');
         return;
     }
     
-    document.getElementById('exportSection').style.display = 'block';
-    updateAuthStatus(`Loading "${playlist.name}"...`, 'info', 'exportStatus');
+    if (!appleMusicToken && !musicKit) {
+        updateAuthStatus('Please connect Apple Music first.', 'error');
+        return;
+    }
+    
+    document.getElementById('transferSection').style.display = 'block';
+    updateAuthStatus(`Transferring "${playlist.name}"...`, 'info', 'transferStatus');
     
     try {
         // Fetch playlist tracks
@@ -108,96 +147,55 @@ async function exportPlaylistData(playlist) {
             album: item.track.album.name
         }));
         
-        currentPlaylistTracks = tracks;
-        currentPlaylistName = playlist.name;
+        // Show progress
+        document.getElementById('transferProgress').style.display = 'block';
         
-        updateAuthStatus(
-            `Loaded ${tracks.length} tracks from "${playlist.name}". Choose an export format below.`, 
-            'success', 
-            'exportStatus'
-        );
-        document.getElementById('exportOptions').style.display = 'block';
+        // Search and match tracks in Apple Music
+        const matchedTracks = [];
+        for (let i = 0; i < tracks.length; i++) {
+            const track = tracks[i];
+            const progress = ((i + 1) / tracks.length) * 100;
+            updateProgress(progress);
+            
+            try {
+                const searchQuery = `${track.name} ${track.artist}`;
+                const searchResults = await musicKit.api.search(searchQuery, {
+                    types: ['songs'],
+                    limit: 1
+                });
+                
+                if (searchResults.songs && searchResults.songs.data.length > 0) {
+                    matchedTracks.push(searchResults.songs.data[0].id);
+                }
+            } catch (error) {
+                console.error(`Failed to match track: ${track.name}`, error);
+            }
+        }
         
-        // Display track list
-        displayTrackList(tracks);
+        // Create Apple Music playlist
+        if (matchedTracks.length > 0) {
+            const playlistResponse = await musicKit.api.createPlaylist(playlist.name, {
+                description: `Imported from Spotify - ${matchedTracks.length} tracks`
+            });
+            
+            // Add tracks to playlist
+            await musicKit.api.addToPlaylist(playlistResponse.data[0].id, matchedTracks);
+            
+            updateAuthStatus(
+                `Successfully transferred ${matchedTracks.length} of ${tracks.length} tracks!`, 
+                'success', 
+                'transferStatus'
+            );
+        } else {
+            updateAuthStatus('No tracks could be matched in Apple Music.', 'error', 'transferStatus');
+        }
+        
+        document.getElementById('transferProgress').style.display = 'none';
     } catch (error) {
-        console.error('Export error:', error);
-        updateAuthStatus('Failed to load playlist. Please try again.', 'error', 'exportStatus');
+        console.error('Transfer error:', error);
+        updateAuthStatus('Transfer failed. Please try again.', 'error', 'transferStatus');
+        document.getElementById('transferProgress').style.display = 'none';
     }
-}
-
-// Display Track List
-function displayTrackList(tracks) {
-    const container = document.getElementById('exportedTracks');
-    const trackList = tracks.map((track, index) => 
-        `${index + 1}. ${track.name} - ${track.artist}`
-    ).join('\n');
-    
-    container.innerHTML = `<div class="track-list">${escapeHtml(trackList)}</div>`;
-}
-
-// Export Playlist
-function exportPlaylist(format) {
-    if (!currentPlaylistTracks) return;
-    
-    let content = '';
-    let filename = `${currentPlaylistName.replace(/[^a-z0-9]/gi, '_')}.${format}`;
-    let mimeType = '';
-    
-    switch (format) {
-        case 'csv':
-            content = 'Track Name,Artist,Album\n';
-            content += currentPlaylistTracks.map(track => 
-                `"${track.name}","${track.artist}","${track.album}"`
-            ).join('\n');
-            mimeType = 'text/csv';
-            break;
-            
-        case 'json':
-            content = JSON.stringify({
-                playlistName: currentPlaylistName,
-                tracks: currentPlaylistTracks
-            }, null, 2);
-            mimeType = 'application/json';
-            break;
-            
-        case 'text':
-            content = `${currentPlaylistName}\n${'='.repeat(currentPlaylistName.length)}\n\n`;
-            content += currentPlaylistTracks.map((track, index) => 
-                `${index + 1}. ${track.name} - ${track.artist}${track.album ? ` (${track.album})` : ''}`
-            ).join('\n');
-            mimeType = 'text/plain';
-            break;
-    }
-    
-    // Download file
-    const blob = new Blob([content], { type: mimeType });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-    
-    updateAuthStatus(`Exported as ${format.toUpperCase()}!`, 'success', 'exportStatus');
-}
-
-// Copy Track List
-function copyTrackList() {
-    if (!currentPlaylistTracks) return;
-    
-    const trackList = currentPlaylistTracks.map((track, index) => 
-        `${index + 1}. ${track.name} - ${track.artist}`
-    ).join('\n');
-    
-    navigator.clipboard.writeText(trackList).then(() => {
-        updateAuthStatus('Track list copied to clipboard!', 'success', 'exportStatus');
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-        updateAuthStatus('Failed to copy to clipboard.', 'error', 'exportStatus');
-    });
 }
 
 // Update Auth Status
@@ -207,6 +205,12 @@ function updateAuthStatus(message, type, elementId = 'authStatus') {
     statusEl.className = `status ${type}`;
 }
 
+// Update Progress
+function updateProgress(percent) {
+    const progressFill = document.getElementById('progressFill');
+    progressFill.style.width = `${percent}%`;
+    progressFill.textContent = `${Math.round(percent)}%`;
+}
 
 // Escape HTML
 function escapeHtml(text) {
@@ -214,4 +218,3 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-

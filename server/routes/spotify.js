@@ -19,8 +19,21 @@ const generateRandomString = (length) => {
 
 // Initiate Spotify OAuth
 router.get('/login', (req, res) => {
+  // Validate credentials are set
+  if (!SPOTIFY_CLIENT_ID || !SPOTIFY_CLIENT_SECRET) {
+    console.error('Spotify credentials missing! Check your .env file.');
+    return res.status(500).json({ 
+      error: 'Server configuration error',
+      message: 'Spotify Client ID or Client Secret is missing. Please check your .env file.'
+    });
+  }
+
   const state = generateRandomString(16);
   const scope = 'user-read-private user-read-email playlist-read-private playlist-read-collaborative';
+
+  // Log the redirect URI being used for debugging
+  console.log('Using redirect URI:', REDIRECT_URI);
+  console.log('Make sure this EXACT URI is in your Spotify app settings!');
 
   const queryParams = querystring.stringify({
     response_type: 'code',
@@ -65,7 +78,20 @@ router.get('/callback', async (req, res) => {
     res.redirect(`/#spotify_token=${access_token}&spotify_refresh=${refresh_token}`);
   } catch (error) {
     console.error('Error getting Spotify token:', error.response?.data || error.message);
-    res.redirect('/#error=spotify_auth_failed');
+    
+    // Provide more specific error information
+    const errorMessage = error.response?.data?.error || 'spotify_auth_failed';
+    const errorDescription = error.response?.data?.error_description || error.message;
+    
+    console.error('Spotify auth error details:', {
+      error: errorMessage,
+      description: errorDescription,
+      clientId: SPOTIFY_CLIENT_ID ? 'Set' : 'Missing',
+      redirectUri: REDIRECT_URI
+    });
+    
+    // Redirect with more specific error
+    res.redirect(`/#error=${encodeURIComponent(errorMessage)}&details=${encodeURIComponent(errorDescription)}`);
   }
 });
 
