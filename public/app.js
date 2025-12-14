@@ -168,9 +168,20 @@ function displayPlaylists(playlists) {
     playlists.forEach(playlist => {
         const card = document.createElement('div');
         card.className = 'playlist-card';
+        
+        // Get playlist cover image (use first image or a placeholder)
+        const coverImage = playlist.images && playlist.images.length > 0 
+            ? playlist.images[0].url 
+            : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="300"%3E%3Crect fill="%23667eea" width="300" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="white" font-family="Arial" font-size="48"%3E%F0%9F%8E%B6%3C/text%3E%3C/svg%3E';
+        
         card.innerHTML = `
-            <h3>${escapeHtml(playlist.name)}</h3>
-            <p>${playlist.tracks.total} tracks</p>
+            <div class="playlist-cover">
+                <img src="${coverImage}" alt="${escapeHtml(playlist.name)} cover" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'300\'%3E%3Crect fill=\'%23667eea\' width=\'300\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'white\' font-family=\'Arial\' font-size=\'48\'%3E%F0%9F%8E%B6%3C/text%3E%3C/svg%3E'">
+            </div>
+            <div class="playlist-info">
+                <h3>${escapeHtml(playlist.name)}</h3>
+                <p>${playlist.tracks.total} tracks</p>
+            </div>
         `;
         card.addEventListener('click', () => exportPlaylistData(playlist));
         container.appendChild(card);
@@ -211,11 +222,24 @@ async function exportPlaylistData(playlist) {
         }
         
         const data = await response.json();
-        const tracks = data.items.filter(item => item.track).map(item => ({
-            name: item.track.name,
-            artist: item.track.artists.map(a => a.name).join(', '),
-            album: item.track.album.name
-        }));
+        console.log('Track data sample:', data.items[0]); // Debug log
+        
+        const tracks = data.items.filter(item => item.track).map(item => {
+            const albumImages = item.track.album?.images || [];
+            const albumCover = albumImages.length > 0 ? albumImages[0].url : null;
+            
+            // Debug log for first few tracks
+            if (data.items.indexOf(item) < 3) {
+                console.log('Track:', item.track.name, 'Album images:', albumImages, 'Cover URL:', albumCover);
+            }
+            
+            return {
+                name: item.track.name,
+                artist: item.track.artists.map(a => a.name).join(', '),
+                album: item.track.album?.name || '',
+                albumCover: albumCover
+            };
+        });
         
         currentPlaylistTracks = tracks;
         currentPlaylistName = playlist.name;
@@ -238,16 +262,70 @@ async function exportPlaylistData(playlist) {
     }
 }
 
+// Handle image load errors
+function handleImageError(img) {
+    const placeholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect fill="%23667eea" width="64" height="64"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="white" font-family="Arial" font-size="24"%3E%F0%9F%8E%B6%3C/text%3E%3C/svg%3E';
+    img.src = placeholder;
+    img.onerror = null; // Prevent infinite loop
+}
+
 // Display Track List
 function displayTrackList(tracks) {
     const container = document.getElementById('exportedTracks');
     if (!container) return;
     
-    const trackList = tracks.map((track, index) => 
-        `${index + 1}. ${track.name} - ${track.artist}`
-    ).join('\n');
+    const placeholderImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect fill="%23667eea" width="64" height="64"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="white" font-family="Arial" font-size="24"%3E%F0%9F%8E%B6%3C/text%3E%3C/svg%3E';
     
-    container.innerHTML = `<div class="track-list">${escapeHtml(trackList)}</div>`;
+    container.innerHTML = '<div class="track-list"></div>';
+    const trackListContainer = container.querySelector('.track-list');
+    
+    tracks.forEach((track, index) => {
+        const trackItem = document.createElement('div');
+        trackItem.className = 'track-item';
+        
+        const coverImage = track.albumCover || placeholderImage;
+        const img = document.createElement('img');
+        img.src = coverImage;
+        img.alt = track.album || 'Album';
+        img.className = 'track-cover';
+        img.onerror = () => handleImageError(img);
+        
+        const trackDetails = document.createElement('div');
+        trackDetails.className = 'track-details';
+        
+        const trackNumber = document.createElement('div');
+        trackNumber.className = 'track-number';
+        trackNumber.textContent = index + 1;
+        
+        const trackInfo = document.createElement('div');
+        trackInfo.className = 'track-info';
+        
+        const trackName = document.createElement('div');
+        trackName.className = 'track-name';
+        trackName.textContent = track.name;
+        
+        const trackArtist = document.createElement('div');
+        trackArtist.className = 'track-artist';
+        trackArtist.textContent = track.artist;
+        
+        trackInfo.appendChild(trackName);
+        trackInfo.appendChild(trackArtist);
+        
+        if (track.album) {
+            const trackAlbum = document.createElement('div');
+            trackAlbum.className = 'track-album';
+            trackAlbum.textContent = track.album;
+            trackInfo.appendChild(trackAlbum);
+        }
+        
+        trackDetails.appendChild(trackNumber);
+        trackDetails.appendChild(trackInfo);
+        
+        trackItem.appendChild(img);
+        trackItem.appendChild(trackDetails);
+        
+        trackListContainer.appendChild(trackItem);
+    });
 }
 
 // Escape CSV value according to RFC 4180

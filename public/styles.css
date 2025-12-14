@@ -97,14 +97,28 @@ section h2 {
     color: white;
 }
 
+.btn-spotify:hover:not(:disabled) {
+    background: #1ed760;
+}
+
+.spotify-logo {
+    width: 24px;
+    height: 24px;
+    fill: white;
+}
+
 .btn-apple {
     background: #FA243C;
     color: white;
 }
 
 .btn-logout {
-    background: #6c757d;
+    background: #dc3545;
     color: white;
+}
+
+.btn-logout:hover:not(:disabled) {
+    background: #c82333;
 }
 
 .btn-export {
@@ -130,13 +144,88 @@ section h2 {
     background: #f8f9fa;
     border-radius: 8px;
     padding: 15px;
-    max-height: 400px;
+    max-height: 500px;
     overflow-y: auto;
     margin-top: 15px;
-    font-family: 'Courier New', monospace;
+}
+
+.track-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+    border: 1px solid #e9ecef;
+}
+
+.track-item:hover {
+    background: #f1f3f5;
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.track-item:last-child {
+    margin-bottom: 0;
+}
+
+.track-cover {
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.track-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.track-number {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #667eea;
+    min-width: 24px;
+    text-align: center;
+}
+
+.track-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.track-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-artist {
     font-size: 0.9rem;
-    white-space: pre-wrap;
-    word-wrap: break-word;
+    color: #666;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-album {
+    font-size: 0.85rem;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .icon {
@@ -179,9 +268,11 @@ section h2 {
     background: #f8f9fa;
     border: 2px solid #e9ecef;
     border-radius: 12px;
-    padding: 20px;
+    overflow: hidden;
     cursor: pointer;
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .playlist-card:hover {
@@ -190,15 +281,37 @@ section h2 {
     box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
 }
 
+.playlist-cover {
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.playlist-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.playlist-info {
+    padding: 15px;
+}
+
 .playlist-card h3 {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     color: #333;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .playlist-card p {
     color: #666;
     font-size: 0.9rem;
+    margin: 0;
 }
 
 .progress-bar {

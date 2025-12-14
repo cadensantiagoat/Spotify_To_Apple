@@ -154,7 +154,7 @@ router.get('/playlist/:playlistId/tracks', async (req, res) => {
       },
       params: {
         limit: 100,
-        fields: 'items(track(name,artists(name),album(name)))'
+        market: 'US' // Required for some track data
       }
     });
 
