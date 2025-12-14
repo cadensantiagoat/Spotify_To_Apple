@@ -15,11 +15,13 @@ app.use(express.static(path.join(__dirname, '../public')));
 const spotifyRoutes = require('./routes/spotify');
 const appleMusicRoutes = require('./routes/appleMusic');
 const transferRoutes = require('./routes/transfer');
+const youtubeRoutes = require('./routes/youtube');
 
 // API Routes
 app.use('/api/spotify', spotifyRoutes);
 app.use('/api/apple-music', appleMusicRoutes);
 app.use('/api/transfer', transferRoutes);
+app.use('/api/youtube', youtubeRoutes);
 
 // Serve frontend
 app.get('*', (req, res) => {

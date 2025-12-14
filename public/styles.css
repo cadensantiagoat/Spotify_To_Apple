@@ -107,6 +107,21 @@ section h2 {
     fill: white;
 }
 
+.btn-youtube {
+    background: #FF0000;
+    color: white;
+}
+
+.btn-youtube:hover:not(:disabled) {
+    background: #CC0000;
+}
+
+.youtube-logo {
+    width: 24px;
+    height: 24px;
+    fill: white;
+}
+
 .btn-apple {
     background: #FA243C;
     color: white;

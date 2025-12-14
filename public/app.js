@@ -1,5 +1,6 @@
 // Global state
 let spotifyToken = null;
+let youtubeToken = null;
 let currentPlaylistTracks = null;
 let currentPlaylistName = null;
 
@@ -26,7 +27,14 @@ window.addEventListener('DOMContentLoaded', () => {
         setForceReauth(false); // Reset flag after successful login
         updateAuthStatus('Spotify connected!', 'success');
         showLogoutButton();
+        showYouTubeLoginButton();
         loadSpotifyPlaylists();
+    }
+    
+    if (params.get('youtube_token')) {
+        youtubeToken = params.get('youtube_token');
+        updateAuthStatus('YouTube connected!', 'success');
+        showYouTubeLogoutButton();
     }
     
     // If there's an error, reset forceReauth flag
@@ -43,11 +51,13 @@ window.addEventListener('DOMContentLoaded', () => {
     const exportJSON = document.getElementById('exportJSON');
     const exportText = document.getElementById('exportText');
     const copyTracks = document.getElementById('copyTracks');
+    const exportYouTube = document.getElementById('exportYouTube');
     
     if (exportCSV) exportCSV.addEventListener('click', () => exportPlaylist('csv'));
     if (exportJSON) exportJSON.addEventListener('click', () => exportPlaylist('json'));
     if (exportText) exportText.addEventListener('click', () => exportPlaylist('text'));
     if (copyTracks) copyTracks.addEventListener('click', () => copyTrackList());
+    if (exportYouTube) exportYouTube.addEventListener('click', () => exportToYouTube());
 });
 
 // Spotify Login
@@ -69,6 +79,22 @@ const spotifyLogoutBtn = document.getElementById('spotifyLogout');
 if (spotifyLogoutBtn) {
     spotifyLogoutBtn.addEventListener('click', () => {
         logoutSpotify();
+    });
+}
+
+// YouTube Login
+const youtubeLoginBtn = document.getElementById('youtubeLogin');
+if (youtubeLoginBtn) {
+    youtubeLoginBtn.addEventListener('click', () => {
+        window.location.href = '/api/youtube/login';
+    });
+}
+
+// YouTube Logout
+const youtubeLogoutBtn = document.getElementById('youtubeLogout');
+if (youtubeLogoutBtn) {
+    youtubeLogoutBtn.addEventListener('click', () => {
+        logoutYouTube();
     });
 }
 
@@ -118,6 +144,31 @@ function hideLogoutButton() {
     const loginBtn = document.getElementById('spotifyLogin');
     if (logoutBtn) logoutBtn.style.display = 'none';
     if (loginBtn) loginBtn.style.display = 'inline-flex';
+}
+
+// Show YouTube login button
+function showYouTubeLoginButton() {
+    const logoutBtn = document.getElementById('youtubeLogout');
+    const loginBtn = document.getElementById('youtubeLogin');
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    if (loginBtn) loginBtn.style.display = 'inline-flex';
+}
+
+// Show YouTube logout button
+function showYouTubeLogoutButton() {
+    const logoutBtn = document.getElementById('youtubeLogout');
+    const loginBtn = document.getElementById('youtubeLogin');
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+    if (loginBtn) loginBtn.style.display = 'none';
+}
+
+// Logout YouTube
+function logoutYouTube() {
+    youtubeToken = null;
+    localStorage.removeItem('youtube_token');
+    sessionStorage.removeItem('youtube_token');
+    showYouTubeLoginButton();
+    updateAuthStatus('YouTube logged out.', 'info');
 }
 
 // Load Spotify Playlists
@@ -417,7 +468,7 @@ function copyTrackList() {
 function updateAuthStatus(message, type, elementId = 'authStatus') {
     const statusEl = document.getElementById(elementId);
     if (!statusEl) return;
-    statusEl.textContent = message;
+    statusEl.innerHTML = message; // Use innerHTML to support links
     statusEl.className = `status ${type}`;
 }
 
@@ -426,4 +477,120 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Export to YouTube
+async function exportToYouTube() {
+    if (!currentPlaylistTracks || !currentPlaylistName) {
+        updateAuthStatus('No playlist loaded. Please select a playlist first.', 'error', 'exportStatus');
+        return;
+    }
+
+    if (!youtubeToken) {
+        updateAuthStatus('Please connect YouTube first.', 'error', 'exportStatus');
+        // Optionally redirect to YouTube login
+        if (confirm('You need to connect YouTube first. Would you like to connect now?')) {
+            window.location.href = '/api/youtube/login';
+        }
+        return;
+    }
+
+    updateAuthStatus('Creating YouTube playlist...', 'info', 'exportStatus');
+    
+    try {
+        // Create playlist
+        const playlistResponse = await fetch('/api/youtube/playlist', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${youtubeToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: currentPlaylistName,
+                description: `Playlist exported from Spotify: ${currentPlaylistName}`
+            })
+        });
+
+        if (!playlistResponse.ok) {
+            const error = await playlistResponse.json();
+            throw new Error(error.error || 'Failed to create playlist');
+        }
+
+        const playlist = await playlistResponse.json();
+        updateAuthStatus(`Playlist created! Adding ${currentPlaylistTracks.length} tracks...`, 'info', 'exportStatus');
+
+        let successCount = 0;
+        let failCount = 0;
+        const failedTracks = [];
+
+        // Add tracks to playlist
+        for (let i = 0; i < currentPlaylistTracks.length; i++) {
+            const track = currentPlaylistTracks[i];
+            const searchQuery = `${track.name} ${track.artist}`;
+            
+            updateAuthStatus(
+                `Adding tracks... (${i + 1}/${currentPlaylistTracks.length}) - ${track.name}`,
+                'info',
+                'exportStatus'
+            );
+
+            try {
+                // Search for video
+                const searchResponse = await fetch(`/api/youtube/search?q=${encodeURIComponent(searchQuery)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${youtubeToken}`
+                    }
+                });
+
+                if (!searchResponse.ok) {
+                    throw new Error('Search failed');
+                }
+
+                const searchResult = await searchResponse.json();
+
+                if (searchResult.videoId) {
+                    // Add video to playlist
+                    const addResponse = await fetch(`/api/youtube/playlist/${playlist.playlistId}/add`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${youtubeToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            videoId: searchResult.videoId
+                        })
+                    });
+
+                    if (addResponse.ok) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                        failedTracks.push(track.name);
+                    }
+                } else {
+                    failCount++;
+                    failedTracks.push(track.name);
+                }
+            } catch (error) {
+                console.error(`Error processing track ${track.name}:`, error);
+                failCount++;
+                failedTracks.push(track.name);
+            }
+
+            // Small delay to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+
+        // Show results
+        const message = `Export complete! ${successCount} tracks added. ${failCount > 0 ? `${failCount} tracks not found.` : ''} 
+                        <a href="${playlist.url}" target="_blank" style="color: #667eea; text-decoration: underline;">View Playlist</a>`;
+        updateAuthStatus(message, successCount > 0 ? 'success' : 'error', 'exportStatus');
+        
+        if (failedTracks.length > 0) {
+            console.log('Failed tracks:', failedTracks);
+        }
+    } catch (error) {
+        console.error('Export to YouTube error:', error);
+        updateAuthStatus(`Failed to export to YouTube: ${error.message}`, 'error', 'exportStatus');
+    }
 }

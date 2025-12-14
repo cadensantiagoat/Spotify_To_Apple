@@ -18,7 +18,7 @@
             <section class="auth-section">
                 <div class="auth-card">
                     <h2>Connect Your Spotify Account</h2>
-                    <p class="info-text">Connect Spotify to export your playlists. You can then manually import them to Apple Music.</p>
+                    <p class="info-text">Connect Spotify to export your playlists. You can export to YouTube or manually import them to Apple Music.</p>
                     <div class="auth-buttons">
                         <button id="spotifyLogin" class="btn btn-spotify">
                             <svg class="spotify-logo" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -27,7 +27,16 @@
                             Connect Spotify
                         </button>
                         <button id="spotifyLogout" class="btn btn-logout" style="display: none;">
-                            Logout
+                            Logout Spotify
+                        </button>
+                        <button id="youtubeLogin" class="btn btn-youtube" style="display: none;">
+                            <svg class="youtube-logo" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                            Connect YouTube
+                        </button>
+                        <button id="youtubeLogout" class="btn btn-logout" style="display: none;">
+                            Logout YouTube
                         </button>
                     </div>
                     <div id="authStatus" class="status"></div>
@@ -51,6 +60,7 @@
                         <button id="exportJSON" class="btn btn-export">Export as JSON</button>
                         <button id="exportText" class="btn btn-export">Export as Text</button>
                         <button id="copyTracks" class="btn btn-export">Copy Track List</button>
+                        <button id="exportYouTube" class="btn btn-export btn-youtube">Export to YouTube</button>
                     </div>
                     <div id="exportedTracks" style="margin-top: 20px;"></div>
                 </div>

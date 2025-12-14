@@ -4,9 +4,10 @@ A **100% FREE** web application that exports your Spotify playlists for manual i
 
 ## Features
 
--  Secure OAuth authentication for Spotify
+-  Secure OAuth authentication for Spotify and YouTube
 -  View all your Spotify playlists
 -  Export playlists in multiple formats (CSV, JSON, Text)
+-  Export playlists directly to YouTube
 -  Copy track lists to clipboard
 -  Modern, responsive UI
 -  **Completely Free** - No paid subscriptions needed
@@ -15,6 +16,7 @@ A **100% FREE** web application that exports your Spotify playlists for manual i
 
 - Node.js (v14 or higher)
 - Spotify Developer Account (free)
+- YouTube/Google Cloud Account (free, for YouTube export feature)
 - **No Apple Developer Account needed!**
 
 ## Setup Instructions
@@ -25,6 +27,26 @@ A **100% FREE** web application that exports your Spotify playlists for manual i
 2. Create a new app
 3. Note your `Client ID` and `Client Secret`
 4. Add `http://localhost:3000/api/spotify/callback` to your app's redirect URIs
+
+### 1.5. YouTube API Setup (Optional, for YouTube export)
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the YouTube Data API v3:
+   - Go to "APIs & Services" > "Library"
+   - Search for "YouTube Data API v3"
+   - Click "Enable"
+4. Create OAuth 2.0 credentials:
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth client ID"
+   - Choose "Web application"
+   - In "Authorized JavaScript origins", add: `http://localhost:3000` (base URL only, no path)
+   - In "Authorized redirect URIs", add: `http://localhost:3000/api/youtube/callback` (full callback path)
+   - Note your `Client ID` and `Client Secret`
+
+   **Important**: 
+   - "Authorized JavaScript origins" = base URL only (e.g., `http://localhost:3000`)
+   - "Authorized redirect URIs" = full callback path (e.g., `http://localhost:3000/api/youtube/callback`)
 
 ### 2. Installation
 
@@ -39,14 +61,21 @@ A **100% FREE** web application that exports your Spotify playlists for manual i
    cp .env.example .env
    ```
 
-4. Fill in your Spotify credentials in the `.env` file:
+4. Fill in your credentials in the `.env` file:
    ```
    SPOTIFY_CLIENT_ID=your_spotify_client_id
    SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
-   SPOTIFY_REDIRECT_URI=http://127.0.0.1:3000/api/spotify/callback
+   SPOTIFY_REDIRECT_URI=http://localhost:3000/api/spotify/callback
+   
+   # Optional: YouTube export feature
+   YOUTUBE_CLIENT_ID=your_youtube_client_id
+   YOUTUBE_CLIENT_SECRET=your_youtube_client_secret
+   YOUTUBE_REDIRECT_URI=http://localhost:3000/api/youtube/callback
    ```
 
-   **Note**: You don't need Apple Music credentials! This app exports playlists for manual import.
+   **Note**: 
+   - You don't need Apple Music credentials! This app exports playlists for manual import.
+   - YouTube credentials are optional - only needed if you want to export playlists directly to YouTube.
 
 ### 3. Run the Application
 
