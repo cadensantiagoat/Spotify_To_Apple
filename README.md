@@ -4,12 +4,12 @@ A **100% FREE** web application that exports your Spotify playlists for manual i
 
 ## Features
 
-- 🔐 Secure OAuth authentication for Spotify
-- 📋 View all your Spotify playlists
-- 📄 Export playlists in multiple formats (CSV, JSON, Text)
-- 📋 Copy track lists to clipboard
-- 🎨 Modern, responsive UI
-- 💰 **Completely Free** - No paid subscriptions needed
+-  Secure OAuth authentication for Spotify
+-  View all your Spotify playlists
+-  Export playlists in multiple formats (CSV, JSON, Text)
+-  Copy track lists to clipboard
+-  Modern, responsive UI
+-  **Completely Free** - No paid subscriptions needed
 
 ## Prerequisites
 
@@ -97,10 +97,10 @@ Alternatively, you can use an incognito/private window to test account switching
 
 ## Why This Approach?
 
-- ✅ **100% Free** - No Apple Developer account ($99/year) needed
-- ✅ **No API Limits** - No rate limiting or quota restrictions
-- ✅ **Full Control** - You decide which tracks to add
-- ✅ **Works Everywhere** - Use any Apple Music client (Mac, iPhone, iPad, Web)
+-  **100% Free** - No Apple Developer account ($99/year) needed
+-  **No API Limits** - No rate limiting or quota restrictions
+-  **Full Control** - You decide which tracks to add
+-  **Works Everywhere** - Use any Apple Music client (Mac, iPhone, iPad, Web)
 
 The trade-off is manual import, but it's completely free and gives you full control!
 
